@@ -1,0 +1,9 @@
+{
+	"name": "sfo-adf",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "e16b7e05-f27f-438a-b74d-12c17edc7eae",
+		"tenantId": "05de9dcc-da19-4189-8091-3b57416411c4"
+	}
+}
