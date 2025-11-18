@@ -1,0 +1,179 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "sfo-adf"
+		},
+		"sfo_linked_service_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'sfo_linked_service'"
+		},
+		"ls_databricks_sfo_analytics_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'ls_databricks_sfo_analytics'"
+		},
+		"sfo_linked_service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sfostorageadl.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_ingest_sfo_data_to_landing')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set Execution ID",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "execution_id",
+							"value": {
+								"value": "@concat(pipeline().Pipeline, '_', utcNow('yyyyMMddHHmmss'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Set Pipeline Start Time",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Set Execution ID",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "pipeline_start_time",
+							"value": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Run incremental loading Databricks notebook",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "Set Pipeline Start Time",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/sfo-analytics/01_incremental_loading",
+							"baseParameters": {
+								"start_date": "@pipeline().parameters.start_date",
+								"dataset_filter": "@pipeline().parameters.dataset_filter",
+								"load_type": "@pipeline().parameters.load_type"
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_sfo_analytics",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"start_date": {
+						"type": "string",
+						"defaultValue": "202001"
+					},
+					"dataset_filter": {
+						"type": "string",
+						"defaultValue": "all"
+					},
+					"load_type": {
+						"type": "string",
+						"defaultValue": "incremental"
+					}
+				},
+				"variables": {
+					"execution_id": {
+						"type": "String"
+					},
+					"pipeline_start_time": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_sfo_analytics')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sfo_linked_service')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('sfo_linked_service_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('sfo_linked_service_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_databricks_sfo_analytics')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Databricks workspace for SFO data processing",
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-1439494984013692.12.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('ls_databricks_sfo_analytics_accessToken')]"
+					},
+					"newClusterNodeType": "Standard_DC4as_v5",
+					"newClusterNumOfWorker": "1",
+					"newClusterVersion": "16.4.x-scala2.12",
+					"clusterOption": "Fixed",
+					"newClusterInitScripts": []
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
