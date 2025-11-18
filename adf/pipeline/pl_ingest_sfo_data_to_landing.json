@@ -1,6 +1,62 @@
 {
 	"name": "pl_ingest_sfo_data_to_landing",
 	"properties": {
+		"activities": [
+			{
+				"name": "Set Execution ID",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "execution_id",
+					"value": {
+						"value": "@concat(pipeline().Pipeline, '_', utcNow('yyyyMMddHHmmss'))",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Set Pipeline Start Time",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Set Execution ID",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "pipeline_start_time",
+					"value": {
+						"value": "@utcNow()",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Run incremental loading Databricks notebook",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": []
+			}
+		],
 		"parameters": {
 			"start_date": {
 				"type": "string",
@@ -13,6 +69,14 @@
 			"load_type": {
 				"type": "string",
 				"defaultValue": "incremental"
+			}
+		},
+		"variables": {
+			"execution_id": {
+				"type": "String"
+			},
+			"pipeline_start_time": {
+				"type": "String"
 			}
 		},
 		"annotations": []
