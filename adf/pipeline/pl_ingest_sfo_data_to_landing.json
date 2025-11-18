@@ -46,7 +46,14 @@
 			{
 				"name": "Run incremental loading Databricks notebook",
 				"type": "DatabricksNotebook",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Set Pipeline Start Time",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -54,7 +61,19 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/sfo-analytics/01_incremental_loading",
+					"baseParameters": {
+						"start_date": "@pipeline().parameters.start_date",
+						"dataset_filter": "@pipeline().parameters.dataset_filter",
+						"load_type": "@pipeline().parameters.load_type"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_sfo_analytics",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"parameters": {
