@@ -1,0 +1,20 @@
+{
+	"name": "pl_ingest_sfo_data_to_landing",
+	"properties": {
+		"parameters": {
+			"start_date": {
+				"type": "string",
+				"defaultValue": "202001"
+			},
+			"dataset_filter": {
+				"type": "string",
+				"defaultValue": "all"
+			},
+			"load_type": {
+				"type": "string",
+				"defaultValue": "incremental"
+			}
+		},
+		"annotations": []
+	}
+}
