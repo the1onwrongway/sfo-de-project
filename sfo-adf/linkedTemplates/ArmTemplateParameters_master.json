@@ -8,11 +8,23 @@
 		"sfo_linked_service_accountKey": {
 			"value": ""
 		},
+		"ls_sql_logging_password": {
+			"value": ""
+		},
 		"ls_databricks_sfo_analytics_accessToken": {
 			"value": ""
 		},
 		"sfo_linked_service_properties_typeProperties_url": {
 			"value": "https://sfostorageadl.dfs.core.windows.net/"
+		},
+		"ls_sql_logging_properties_typeProperties_server": {
+			"value": "sfo-log-sql-server.database.windows.net"
+		},
+		"ls_sql_logging_properties_typeProperties_database": {
+			"value": "sfo-pipeline-logs"
+		},
+		"ls_sql_logging_properties_typeProperties_userName": {
+			"value": "sfo-admin"
 		},
 		"containerUri": {
 			"value": ""

@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'sfo_linked_service'"
 		},
+		"ls_sql_logging_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'ls_sql_logging'"
+		},
 		"ls_databricks_sfo_analytics_accessToken": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accessToken' of 'ls_databricks_sfo_analytics'"
@@ -18,6 +22,18 @@
 		"sfo_linked_service_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://sfostorageadl.dfs.core.windows.net/"
+		},
+		"ls_sql_logging_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sfo-log-sql-server.database.windows.net"
+		},
+		"ls_sql_logging_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sfo-pipeline-logs"
+		},
+		"ls_sql_logging_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sfo-admin"
 		}
 	},
 	"variables": {
@@ -72,7 +88,8 @@
 						}
 					},
 					{
-						"name": "Run incremental loading Databricks notebook",
+						"name": "Run Databricks Notebook",
+						"description": "Run incremental loading Databricks notebook",
 						"type": "DatabricksNotebook",
 						"dependsOn": [
 							{
@@ -91,15 +108,142 @@
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"notebookPath": "/sfo-analytics/01_incremental_loading",
+							"notebookPath": "/sfo-analytics/01_incremental_loading.ipynb",
 							"baseParameters": {
-								"start_date": "@pipeline().parameters.start_date",
-								"dataset_filter": "@pipeline().parameters.dataset_filter",
-								"load_type": "@pipeline().parameters.load_type"
+								"start_date": {
+									"value": "@pipeline().parameters.start_date",
+									"type": "Expression"
+								},
+								"dataset_filter": {
+									"value": "@pipeline().parameters.dataset_filter",
+									"type": "Expression"
+								},
+								"load_type": {
+									"value": "@pipeline().parameters.load_type",
+									"type": "Expression"
+								}
 							}
 						},
 						"linkedServiceName": {
 							"referenceName": "ls_databricks_sfo_analytics",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Log Success",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Run Databricks Notebook",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_LogPipelineExecution]",
+							"storedProcedureParameters": {
+								"details": {
+									"value": "@string(activity('Run Databricks Notebook').output.runOutput)",
+									"type": "String"
+								},
+								"end_time": {
+									"value": "@utcNow()",
+									"type": "DateTime"
+								},
+								"execution_id": {
+									"value": "@variables('execution_id')",
+									"type": "String"
+								},
+								"pipeline_name": {
+									"value": "@pipeline().Pipeline",
+									"type": "String"
+								},
+								"start_time": {
+									"value": "@variables('pipeline_start_time')",
+									"type": "DateTime"
+								},
+								"status": {
+									"value": "SUCCESS",
+									"type": "String"
+								},
+								"total_rows": {
+									"value": "@activity('Run Databricks Notebook').output.runOutput.total_rows",
+									"type": "Int32"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sql_logging",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "Log Failure",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Run Databricks Notebook",
+								"dependencyConditions": [
+									"Failed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[usp_LogPipelineExecution]",
+							"storedProcedureParameters": {
+								"details": {
+									"value": null,
+									"type": "String"
+								},
+								"end_time": {
+									"value": "@utcNow()",
+									"type": "DateTime"
+								},
+								"error_message": {
+									"value": "@activity('Run Databricks Notebook').error.message",
+									"type": "String"
+								},
+								"execution_id": {
+									"value": "@variables('execution_id')",
+									"type": "String"
+								},
+								"pipeline_name": {
+									"value": "@pipeline().Pipeline",
+									"type": "String"
+								},
+								"start_time": {
+									"value": "@variables('pipeline_start_time')",
+									"type": "DateTime"
+								},
+								"status": {
+									"value": "FAILED",
+									"type": "String"
+								},
+								"total_rows": {
+									"value": "0",
+									"type": "Int32"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_sql_logging",
 							"type": "LinkedServiceReference"
 						}
 					}
@@ -132,7 +276,8 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_sfo_analytics')]"
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_sfo_analytics')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_logging')]"
 			]
 		},
 		{
@@ -153,6 +298,28 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ls_sql_logging')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('ls_sql_logging_properties_typeProperties_server')]",
+					"database": "[parameters('ls_sql_logging_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('ls_sql_logging_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('ls_sql_logging_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ls_databricks_sfo_analytics')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -166,8 +333,12 @@
 						"type": "SecureString",
 						"value": "[parameters('ls_databricks_sfo_analytics_accessToken')]"
 					},
-					"newClusterNodeType": "Standard_DC4as_v5",
-					"newClusterNumOfWorker": "1",
+					"newClusterNodeType": "Standard_DS3_v2",
+					"newClusterNumOfWorker": "0",
+					"newClusterSparkConf": {
+						"spark.master": "local[*, 4]",
+						"spark.databricks.cluster.profile": "singleNode"
+					},
 					"newClusterVersion": "16.4.x-scala2.12",
 					"clusterOption": "Fixed",
 					"newClusterInitScripts": []
