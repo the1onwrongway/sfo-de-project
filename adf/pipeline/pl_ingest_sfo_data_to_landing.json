@@ -44,7 +44,8 @@
 				}
 			},
 			{
-				"name": "Run incremental loading Databricks notebook",
+				"name": "Run Databricks Notebook",
+				"description": "Run incremental loading Databricks notebook",
 				"type": "DatabricksNotebook",
 				"dependsOn": [
 					{
@@ -63,15 +64,142 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/sfo-analytics/01_incremental_loading",
+					"notebookPath": "/sfo-analytics/01_incremental_loading.ipynb",
 					"baseParameters": {
-						"start_date": "@pipeline().parameters.start_date",
-						"dataset_filter": "@pipeline().parameters.dataset_filter",
-						"load_type": "@pipeline().parameters.load_type"
+						"start_date": {
+							"value": "@pipeline().parameters.start_date",
+							"type": "Expression"
+						},
+						"dataset_filter": {
+							"value": "@pipeline().parameters.dataset_filter",
+							"type": "Expression"
+						},
+						"load_type": {
+							"value": "@pipeline().parameters.load_type",
+							"type": "Expression"
+						}
 					}
 				},
 				"linkedServiceName": {
 					"referenceName": "ls_databricks_sfo_analytics",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Log Success",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Run Databricks Notebook",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_LogPipelineExecution]",
+					"storedProcedureParameters": {
+						"details": {
+							"value": "@string(activity('Run Databricks Notebook').output.runOutput)",
+							"type": "String"
+						},
+						"end_time": {
+							"value": "@utcNow()",
+							"type": "DateTime"
+						},
+						"execution_id": {
+							"value": "@variables('execution_id')",
+							"type": "String"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "String"
+						},
+						"start_time": {
+							"value": "@variables('pipeline_start_time')",
+							"type": "DateTime"
+						},
+						"status": {
+							"value": "SUCCESS",
+							"type": "String"
+						},
+						"total_rows": {
+							"value": "@activity('Run Databricks Notebook').output.runOutput.total_rows",
+							"type": "Int32"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sql_logging",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Log Failure",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Run Databricks Notebook",
+						"dependencyConditions": [
+							"Failed"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[usp_LogPipelineExecution]",
+					"storedProcedureParameters": {
+						"details": {
+							"value": null,
+							"type": "String"
+						},
+						"end_time": {
+							"value": "@utcNow()",
+							"type": "DateTime"
+						},
+						"error_message": {
+							"value": "@activity('Run Databricks Notebook').error.message",
+							"type": "String"
+						},
+						"execution_id": {
+							"value": "@variables('execution_id')",
+							"type": "String"
+						},
+						"pipeline_name": {
+							"value": "@pipeline().Pipeline",
+							"type": "String"
+						},
+						"start_time": {
+							"value": "@variables('pipeline_start_time')",
+							"type": "DateTime"
+						},
+						"status": {
+							"value": "FAILED",
+							"type": "String"
+						},
+						"total_rows": {
+							"value": "0",
+							"type": "Int32"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sql_logging",
 					"type": "LinkedServiceReference"
 				}
 			}
