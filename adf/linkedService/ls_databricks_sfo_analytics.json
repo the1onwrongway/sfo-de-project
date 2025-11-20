@@ -7,7 +7,7 @@
 		"type": "AzureDatabricks",
 		"typeProperties": {
 			"domain": "https://adb-1439494984013692.12.azuredatabricks.net",
-			"newClusterNodeType": "Standard_DS3_v2",
+			"newClusterNodeType": "Standard_DS2_v2",
 			"newClusterNumOfWorker": "0",
 			"newClusterVersion": "16.4.x-scala2.12",
 			"newClusterSparkConf": {
