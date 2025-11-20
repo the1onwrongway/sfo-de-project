@@ -81,7 +81,7 @@
 					}
 				},
 				"linkedServiceName": {
-					"referenceName": "ls_databricks_sfo_analytics",
+					"referenceName": "ls_databricks_sfo",
 					"type": "LinkedServiceReference"
 				}
 			},
