@@ -108,23 +108,38 @@
 					"storedProcedureName": "[dbo].[usp_LogPipelineExecution]",
 					"storedProcedureParameters": {
 						"details": {
-							"value": "@string(activity('Run Databricks Notebook').output.runOutput)",
+							"value": {
+								"value": "@string(activity('Run Databricks Notebook').output.runOutput)",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"end_time": {
-							"value": "@utcNow()",
+							"value": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							},
 							"type": "DateTime"
 						},
 						"execution_id": {
-							"value": "@variables('execution_id')",
+							"value": {
+								"value": "@variables('execution_id')",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"pipeline_name": {
-							"value": "@pipeline().Pipeline",
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"start_time": {
-							"value": "@variables('pipeline_start_time')",
+							"value": {
+								"value": "@variables('pipeline_start_time')",
+								"type": "Expression"
+							},
 							"type": "DateTime"
 						},
 						"status": {
@@ -132,7 +147,10 @@
 							"type": "String"
 						},
 						"total_rows": {
-							"value": "@activity('Run Databricks Notebook').output.runOutput.total_rows",
+							"value": {
+								"value": "@activity('Run Databricks Notebook').output.runOutput.total_rows",
+								"type": "Expression"
+							},
 							"type": "Int32"
 						}
 					}
@@ -169,23 +187,38 @@
 							"type": "String"
 						},
 						"end_time": {
-							"value": "@utcNow()",
+							"value": {
+								"value": "@utcNow()",
+								"type": "Expression"
+							},
 							"type": "DateTime"
 						},
 						"error_message": {
-							"value": "@activity('Run Databricks Notebook').error.message",
+							"value": {
+								"value": "@activity('Run Databricks Notebook').error.message",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"execution_id": {
-							"value": "@variables('execution_id')",
+							"value": {
+								"value": "@variables('execution_id')",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"pipeline_name": {
-							"value": "@pipeline().Pipeline",
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
 							"type": "String"
 						},
 						"start_time": {
-							"value": "@variables('pipeline_start_time')",
+							"value": {
+								"value": "@variables('pipeline_start_time')",
+								"type": "Expression"
+							},
 							"type": "DateTime"
 						},
 						"status": {
