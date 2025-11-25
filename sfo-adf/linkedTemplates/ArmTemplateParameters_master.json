@@ -5,17 +5,17 @@
 		"factoryName": {
 			"value": "sfo-adf"
 		},
-		"sfo_linked_service_accountKey": {
+		"ls_databricks_sfo_accessToken": {
 			"value": ""
 		},
 		"ls_sql_logging_password": {
 			"value": ""
 		},
-		"ls_databricks_sfo_analytics_accessToken": {
+		"sfo_linked_service_accountKey": {
 			"value": ""
 		},
-		"sfo_linked_service_properties_typeProperties_url": {
-			"value": "https://sfostorageadl.dfs.core.windows.net/"
+		"ls_databricks_sfo_properties_typeProperties_existingClusterId": {
+			"value": "1112-074711-ks1tm3ly"
 		},
 		"ls_sql_logging_properties_typeProperties_server": {
 			"value": "sfo-log-sql-server.database.windows.net"
@@ -25,6 +25,9 @@
 		},
 		"ls_sql_logging_properties_typeProperties_userName": {
 			"value": "sfo-admin"
+		},
+		"sfo_linked_service_properties_typeProperties_url": {
+			"value": "https://sfostorageadl.dfs.core.windows.net/"
 		},
 		"containerUri": {
 			"value": ""

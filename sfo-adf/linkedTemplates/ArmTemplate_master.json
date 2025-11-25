@@ -7,21 +7,21 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "sfo-adf"
 		},
-		"sfo_linked_service_accountKey": {
+		"ls_databricks_sfo_accessToken": {
 			"type": "secureString",
-			"metadata": "Secure string for 'accountKey' of 'sfo_linked_service'"
+			"metadata": "Secure string for 'accessToken' of 'ls_databricks_sfo'"
 		},
 		"ls_sql_logging_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'ls_sql_logging'"
 		},
-		"ls_databricks_sfo_analytics_accessToken": {
+		"sfo_linked_service_accountKey": {
 			"type": "secureString",
-			"metadata": "Secure string for 'accessToken' of 'ls_databricks_sfo_analytics'"
+			"metadata": "Secure string for 'accountKey' of 'sfo_linked_service'"
 		},
-		"sfo_linked_service_properties_typeProperties_url": {
+		"ls_databricks_sfo_properties_typeProperties_existingClusterId": {
 			"type": "string",
-			"defaultValue": "https://sfostorageadl.dfs.core.windows.net/"
+			"defaultValue": "1112-074711-ks1tm3ly"
 		},
 		"ls_sql_logging_properties_typeProperties_server": {
 			"type": "string",
@@ -34,6 +34,10 @@
 		"ls_sql_logging_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sfo-admin"
+		},
+		"sfo_linked_service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sfostorageadl.dfs.core.windows.net/"
 		},
 		"containerUri": {
 			"type": "string",
@@ -62,17 +66,17 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"sfo_linked_service_accountKey": {
-						"value": "[parameters('sfo_linked_service_accountKey')]"
+					"ls_databricks_sfo_accessToken": {
+						"value": "[parameters('ls_databricks_sfo_accessToken')]"
 					},
 					"ls_sql_logging_password": {
 						"value": "[parameters('ls_sql_logging_password')]"
 					},
-					"ls_databricks_sfo_analytics_accessToken": {
-						"value": "[parameters('ls_databricks_sfo_analytics_accessToken')]"
+					"sfo_linked_service_accountKey": {
+						"value": "[parameters('sfo_linked_service_accountKey')]"
 					},
-					"sfo_linked_service_properties_typeProperties_url": {
-						"value": "[parameters('sfo_linked_service_properties_typeProperties_url')]"
+					"ls_databricks_sfo_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('ls_databricks_sfo_properties_typeProperties_existingClusterId')]"
 					},
 					"ls_sql_logging_properties_typeProperties_server": {
 						"value": "[parameters('ls_sql_logging_properties_typeProperties_server')]"
@@ -82,6 +86,9 @@
 					},
 					"ls_sql_logging_properties_typeProperties_userName": {
 						"value": "[parameters('ls_sql_logging_properties_typeProperties_userName')]"
+					},
+					"sfo_linked_service_properties_typeProperties_url": {
+						"value": "[parameters('sfo_linked_service_properties_typeProperties_url')]"
 					}
 				}
 			},

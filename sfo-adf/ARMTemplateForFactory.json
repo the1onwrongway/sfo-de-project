@@ -7,21 +7,21 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "sfo-adf"
 		},
-		"sfo_linked_service_accountKey": {
+		"ls_databricks_sfo_accessToken": {
 			"type": "secureString",
-			"metadata": "Secure string for 'accountKey' of 'sfo_linked_service'"
+			"metadata": "Secure string for 'accessToken' of 'ls_databricks_sfo'"
 		},
 		"ls_sql_logging_password": {
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'ls_sql_logging'"
 		},
-		"ls_databricks_sfo_analytics_accessToken": {
+		"sfo_linked_service_accountKey": {
 			"type": "secureString",
-			"metadata": "Secure string for 'accessToken' of 'ls_databricks_sfo_analytics'"
+			"metadata": "Secure string for 'accountKey' of 'sfo_linked_service'"
 		},
-		"sfo_linked_service_properties_typeProperties_url": {
+		"ls_databricks_sfo_properties_typeProperties_existingClusterId": {
 			"type": "string",
-			"defaultValue": "https://sfostorageadl.dfs.core.windows.net/"
+			"defaultValue": "1112-074711-ks1tm3ly"
 		},
 		"ls_sql_logging_properties_typeProperties_server": {
 			"type": "string",
@@ -34,6 +34,10 @@
 		"ls_sql_logging_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sfo-admin"
+		},
+		"sfo_linked_service_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sfostorageadl.dfs.core.windows.net/"
 		}
 	},
 	"variables": {
@@ -125,7 +129,7 @@
 							}
 						},
 						"linkedServiceName": {
-							"referenceName": "ls_databricks_sfo_analytics",
+							"referenceName": "ls_databricks_sfo",
 							"type": "LinkedServiceReference"
 						}
 					},
@@ -152,23 +156,38 @@
 							"storedProcedureName": "[[dbo].[usp_LogPipelineExecution]",
 							"storedProcedureParameters": {
 								"details": {
-									"value": "@string(activity('Run Databricks Notebook').output.runOutput)",
+									"value": {
+										"value": "@string(activity('Run Databricks Notebook').output.runOutput)",
+										"type": "Expression"
+									},
 									"type": "String"
 								},
 								"end_time": {
-									"value": "@utcNow()",
+									"value": {
+										"value": "@utcNow()",
+										"type": "Expression"
+									},
 									"type": "DateTime"
 								},
 								"execution_id": {
-									"value": "@variables('execution_id')",
+									"value": {
+										"value": "@variables('execution_id')",
+										"type": "Expression"
+									},
 									"type": "String"
 								},
 								"pipeline_name": {
-									"value": "@pipeline().Pipeline",
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
 									"type": "String"
 								},
 								"start_time": {
-									"value": "@variables('pipeline_start_time')",
+									"value": {
+										"value": "@variables('pipeline_start_time')",
+										"type": "Expression"
+									},
 									"type": "DateTime"
 								},
 								"status": {
@@ -176,7 +195,10 @@
 									"type": "String"
 								},
 								"total_rows": {
-									"value": "@activity('Run Databricks Notebook').output.runOutput.total_rows",
+									"value": {
+										"value": "@activity('Run Databricks Notebook').output.runOutput.total_rows",
+										"type": "Expression"
+									},
 									"type": "Int32"
 								}
 							}
@@ -213,23 +235,38 @@
 									"type": "String"
 								},
 								"end_time": {
-									"value": "@utcNow()",
+									"value": {
+										"value": "@utcNow()",
+										"type": "Expression"
+									},
 									"type": "DateTime"
 								},
 								"error_message": {
-									"value": "@activity('Run Databricks Notebook').error.message",
+									"value": {
+										"value": "@activity('Run Databricks Notebook').error.message",
+										"type": "Expression"
+									},
 									"type": "String"
 								},
 								"execution_id": {
-									"value": "@variables('execution_id')",
+									"value": {
+										"value": "@variables('execution_id')",
+										"type": "Expression"
+									},
 									"type": "String"
 								},
 								"pipeline_name": {
-									"value": "@pipeline().Pipeline",
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									},
 									"type": "String"
 								},
 								"start_time": {
-									"value": "@variables('pipeline_start_time')",
+									"value": {
+										"value": "@variables('pipeline_start_time')",
+										"type": "Expression"
+									},
 									"type": "DateTime"
 								},
 								"status": {
@@ -276,23 +313,24 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_sfo_analytics')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_sfo')]",
 				"[concat(variables('factoryId'), '/linkedServices/ls_sql_logging')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/sfo_linked_service')]",
+			"name": "[concat(parameters('factoryName'), '/ls_databricks_sfo')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
-				"type": "AzureBlobFS",
+				"type": "AzureDatabricks",
 				"typeProperties": {
-					"url": "[parameters('sfo_linked_service_properties_typeProperties_url')]",
-					"accountKey": {
+					"domain": "https://adb-1439494984013692.12.azuredatabricks.net",
+					"accessToken": {
 						"type": "SecureString",
-						"value": "[parameters('sfo_linked_service_accountKey')]"
-					}
+						"value": "[parameters('ls_databricks_sfo_accessToken')]"
+					},
+					"existingClusterId": "[parameters('ls_databricks_sfo_properties_typeProperties_existingClusterId')]"
 				}
 			},
 			"dependsOn": []
@@ -320,31 +358,110 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/ls_databricks_sfo_analytics')]",
+			"name": "[concat(parameters('factoryName'), '/sfo_linked_service')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
-				"description": "Databricks workspace for SFO data processing",
 				"annotations": [],
-				"type": "AzureDatabricks",
+				"type": "AzureBlobFS",
 				"typeProperties": {
-					"domain": "https://adb-1439494984013692.12.azuredatabricks.net",
-					"accessToken": {
+					"url": "[parameters('sfo_linked_service_properties_typeProperties_url')]",
+					"accountKey": {
 						"type": "SecureString",
-						"value": "[parameters('ls_databricks_sfo_analytics_accessToken')]"
-					},
-					"newClusterNodeType": "Standard_DS3_v2",
-					"newClusterNumOfWorker": "0",
-					"newClusterSparkConf": {
-						"spark.master": "local[*, 4]",
-						"spark.databricks.cluster.profile": "singleNode"
-					},
-					"newClusterVersion": "16.4.x-scala2.12",
-					"clusterOption": "Fixed",
-					"newClusterInitScripts": []
+						"value": "[parameters('sfo_linked_service_accountKey')]"
+					}
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_sfo_landing_to_bronze')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Set Execution ID",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "execution_id",
+							"value": {
+								"value": "@concat(pipeline().Pipeline, '_', utcNow('yyyyMMddHHmmss'))",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Run Databricks Notebook",
+						"description": "Run Landing to Bronze Notebook",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "Set Execution ID",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/sfo-analytics/02_landing_to_bronze",
+							"baseParameters": {
+								"validation_mode": {
+									"value": "@pipeline().parameters.validation_mode",
+									"type": "Expression"
+								},
+								"dataset_filter": {
+									"value": "@pipeline().parameters.dataset_filter",
+									"type": "Expression"
+								}
+							}
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_sfo",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"validation_mode": {
+						"type": "string",
+						"defaultValue": "strict"
+					},
+					"dataset_filter": {
+						"type": "string",
+						"defaultValue": "all"
+					}
+				},
+				"variables": {
+					"execution_id": {
+						"type": "String"
+					},
+					"pipeline_start_time": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_sfo')]"
+			]
 		}
 	]
 }
